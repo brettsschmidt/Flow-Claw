@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
-const STATUS_OPTIONS = ['pending', 'in_progress', 'complete', 'blocked'];
-
-async function patchFile(filePath, updates) {
-  const res = await fetch('/api/file', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path: filePath, frontmatter: updates }),
-  });
-  if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`);
-}
+import { patchFrontmatter } from '../api.js';
+import { STATUSES } from '../constants.js';
 
 export default function FrontmatterEditor({ file, allNodes }) {
   const [fm, setFm] = useState(file?.frontmatter || {});
@@ -37,7 +28,7 @@ export default function FrontmatterEditor({ file, allNodes }) {
       return next;
     });
     try {
-      await patchFile(file.path, updates);
+      await patchFrontmatter(file.path, updates);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -82,7 +73,7 @@ export default function FrontmatterEditor({ file, allNodes }) {
           onChange={(e) => patch({ status: e.target.value })}
           className={inputCls}
         >
-          {STATUS_OPTIONS.map((s) => (
+          {STATUSES.map((s) => (
             <option key={s} value={s}>
               {s.replace('_', ' ')}
             </option>

@@ -1,8 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 
-/**
- * Fetches workflow data and subscribes to SSE for live updates.
- */
+// ---------------------------------------------------------------------------
+// Shared EventSource — one connection regardless of how many hooks subscribe
+// ---------------------------------------------------------------------------
+let _es = null;
+const _listeners = new Set();
+
+function subscribeToFileChanges(callback) {
+  if (!_es || _es.readyState === EventSource.CLOSED) {
+    _es = new EventSource('/api/events');
+    _es.onmessage = () => _listeners.forEach((fn) => fn());
+    _es.onerror = () => {};
+  }
+  _listeners.add(callback);
+  return () => {
+    _listeners.delete(callback);
+    if (_listeners.size === 0) {
+      _es?.close();
+      _es = null;
+    }
+  };
+}
+
+// ---------------------------------------------------------------------------
+// useWorkflow — loads the full workflow and live-reloads on file changes
+// ---------------------------------------------------------------------------
 export function useWorkflow() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,18 +45,15 @@ export function useWorkflow() {
 
   useEffect(() => {
     fetchWorkflow();
-    const es = new EventSource('/api/events');
-    es.onmessage = () => fetchWorkflow();
-    es.onerror = () => {};
-    return () => es.close();
+    return subscribeToFileChanges(fetchWorkflow);
   }, [fetchWorkflow]);
 
   return { data, loading, error, refetch: fetchWorkflow };
 }
 
-/**
- * Fetches a single file by its relative path and re-fetches on SSE file-change events.
- */
+// ---------------------------------------------------------------------------
+// useFile — loads a single file and re-fetches on file-change SSE events
+// ---------------------------------------------------------------------------
 export function useFile(filePath) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,11 +77,7 @@ export function useFile(filePath) {
   useEffect(() => {
     if (!filePath) { setData(null); return; }
     doFetch();
-    // Keep detail panel fresh whenever any file changes
-    const es = new EventSource('/api/events');
-    es.onmessage = doFetch;
-    es.onerror = () => {};
-    return () => es.close();
+    return subscribeToFileChanges(doFetch);
   }, [doFetch, filePath]);
 
   return { data, loading, error, refetch: doFetch };

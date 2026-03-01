@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-export default function LogView() {
+export default function LogView({ active }) {
   const [lines, setLines] = useState([]);
   const [logFile, setLogFile] = useState('agent.log');
   const [availableFiles, setAvailableFiles] = useState([]);
@@ -19,15 +19,15 @@ export default function LogView() {
       .catch(() => {});
   }, []);
 
-  // Subscribe to SSE for the selected log file
+  // Subscribe to SSE for the selected log file — only when the tab is active
   useEffect(() => {
+    if (!active) return;
     setLines([]);
     setConnected(false);
     esRef.current?.close();
 
     const es = new EventSource(`/api/logs/events?file=${encodeURIComponent(logFile)}`);
     esRef.current = es;
-
     es.onopen = () => setConnected(true);
     es.onmessage = (e) => {
       try {
@@ -36,16 +36,18 @@ export default function LogView() {
       } catch {}
     };
     es.onerror = () => setConnected(false);
-
     return () => es.close();
-  }, [logFile]);
+  }, [logFile, active]);
 
   // Auto-scroll to bottom on new lines
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [lines]);
 
-  const allLogFiles = Array.from(new Set(['agent.log', ...availableFiles]));
+  const allLogFiles = useMemo(
+    () => Array.from(new Set(['agent.log', ...availableFiles])),
+    [availableFiles]
+  );
 
   return (
     <div className="flex flex-col h-full bg-gray-950 text-green-400 font-mono text-sm">
@@ -77,14 +79,15 @@ export default function LogView() {
 
       {/* Output */}
       <div className="flex-1 overflow-y-auto p-4 space-y-0.5">
-        {lines.length === 0 && (
+        {!active && (
+          <p className="text-gray-600">Switch to the Logs tab to start streaming.</p>
+        )}
+        {active && lines.length === 0 && (
           <p className="text-gray-600">Waiting for output in <span className="text-gray-400">{logFile}</span>…</p>
         )}
         {lines.map((line, i) => {
-          const text = line.text || line.content || '';
+          const text = line.text || '';
           const isStatus = line.type === 'status';
-
-          // Colorize by content
           const color = isStatus
             ? 'text-gray-500 italic'
             : text.match(/\b(error|fail|fatal|exception)\b/i)

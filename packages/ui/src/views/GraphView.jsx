@@ -106,23 +106,13 @@ function GraphNode({ node, isSelected, onClick, dark }) {
   );
 }
 
-export default function GraphView({ workflowNodes }) {
+export default function GraphView({ workflowNodes, dark }) {
   const [transform, setTransform] = useState({ x: 80, y: 0, scale: 1 });
   const [selectedId, setSelectedId] = useState(null);
   const [selectedPath, setSelectedPath] = useState(null);
   const isPanning  = useRef(false);
   const lastMouse  = useRef({ x: 0, y: 0 });
   const svgRef     = useRef();
-
-  // Detect dark mode from the <html> element
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
-  React.useEffect(() => {
-    const obs = new MutationObserver(() =>
-      setDark(document.documentElement.classList.contains('dark'))
-    );
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
 
   const { data: file, loading } = useFile(selectedPath);
 

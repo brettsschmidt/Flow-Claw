@@ -129,13 +129,13 @@ export default function App() {
               <WorkflowView workflowNodes={data.workflowNodes} />
             </div>
             <div className={`absolute inset-0 ${view === 'graph' ? '' : 'hidden'}`}>
-              <GraphView workflowNodes={data.workflowNodes} />
+              <GraphView workflowNodes={data.workflowNodes} dark={dark} />
             </div>
             <div className={`absolute inset-0 ${view === 'wiki' ? '' : 'hidden'}`}>
               <WikiView wikiPages={data.wikiPages} initialPath={wikiTarget} />
             </div>
             <div className={`absolute inset-0 ${view === 'logs' ? '' : 'hidden'}`}>
-              <LogView />
+              <LogView active={view === 'logs'} />
             </div>
           </>
         )}

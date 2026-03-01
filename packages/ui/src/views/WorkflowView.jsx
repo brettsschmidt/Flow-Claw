@@ -4,8 +4,10 @@ import FrontmatterEditor from '../components/FrontmatterEditor.jsx';
 import Editor from '../components/Editor.jsx';
 import NewFileModal from '../components/NewFileModal.jsx';
 import { useFile } from '../hooks/useWorkflow.js';
+import { patchFrontmatter } from '../api.js';
+import { STATUSES } from '../constants.js';
 
-const STATUS_COLUMNS = ['pending', 'in_progress', 'complete', 'blocked'];
+const STATUS_COLUMNS = STATUSES;
 
 const STATUS_LABELS = {
   pending:     'Pending',
@@ -111,11 +113,7 @@ export default function WorkflowView({ workflowNodes }) {
     if (!p) return;
     draggingPath.current = null;
     setDropTarget(null);
-    await fetch('/api/file', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: p, frontmatter: { status: newStatus } }),
-    });
+    await patchFrontmatter(p, { status: newStatus }).catch(() => {});
   };
 
   const columns = STATUS_COLUMNS.map((status) => ({
