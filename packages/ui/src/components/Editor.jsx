@@ -50,7 +50,7 @@ export default function Editor({ file, onClose, onSaved }) {
             <span className="text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded">{error}</span>
           )}
           <span className="text-xs text-gray-400 hidden sm:block">
-            {(e => e.metaKey ? '⌘S' : 'Ctrl+S')(navigator)}<span className="sr-only">to save</span>
+            {/mac/i.test(navigator.platform) ? '⌘S' : 'Ctrl+S'} to save
           </span>
           <button
             onClick={onClose}
