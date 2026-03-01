@@ -1,0 +1,24 @@
+{
+  "name": "flow-claw",
+  "version": "0.1.0",
+  "description": "Configurable workflow and wiki viewer for markdown-based agentic workflows",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w packages/server\" \"npm run dev -w packages/ui\"",
+    "build": "npm run build -w packages/ui",
+    "start": "npm run start -w packages/server",
+    "cli": "node packages/server/src/cli.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "bin": {
+    "flow-claw": "./packages/server/src/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
