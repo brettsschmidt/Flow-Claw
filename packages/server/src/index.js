@@ -5,6 +5,9 @@ import { fileURLToPath } from 'url';
 import { EventEmitter } from 'events';
 import { createFilesRouter } from './routes/files.js';
 import { createSSERouter } from './routes/sse.js';
+import { createSearchRouter } from './routes/search.js';
+import { createEditorRouter } from './routes/editor.js';
+import { createLogsRouter } from './routes/logs.js';
 import { watchDirectory } from './watcher.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,6 +23,9 @@ export async function startServer({ workflowDir, port = 3001, openBrowser = fals
   // API routes
   app.use('/api', createFilesRouter(() => currentWorkflowDir));
   app.use('/api', createSSERouter(emitter));
+  app.use('/api', createSearchRouter(() => currentWorkflowDir));
+  app.use('/api', createEditorRouter(() => currentWorkflowDir));
+  app.use('/api', createLogsRouter(() => currentWorkflowDir));
 
   // Expose the watched directory path to the UI
   app.get('/api/config', (req, res) => {
@@ -33,7 +39,6 @@ export async function startServer({ workflowDir, port = 3001, openBrowser = fals
     const index = path.join(uiDist, 'index.html');
     res.sendFile(index, (err) => {
       if (err) {
-        // UI not built yet — send a helpful message
         res.status(200).send(`
           <html><body style="font-family:monospace;padding:2rem">
             <h2>Flow-Claw server is running</h2>
@@ -55,7 +60,6 @@ export async function startServer({ workflowDir, port = 3001, openBrowser = fals
   return new Promise((resolve) => {
     const server = app.listen(port, () => {
       if (openBrowser) {
-        // Lazy import to avoid errors in Docker/headless envs
         import('open').then(({ default: open }) => open(`http://localhost:${port}`)).catch(() => {});
       }
       resolve(server);

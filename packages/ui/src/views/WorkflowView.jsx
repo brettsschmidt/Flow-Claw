@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import MarkdownRenderer from '../components/MarkdownRenderer.jsx';
+import Editor from '../components/Editor.jsx';
 import { useFile } from '../hooks/useWorkflow.js';
 
 const STATUS_COLUMNS = ['pending', 'in_progress', 'complete', 'blocked'];
@@ -12,17 +13,17 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-  pending: 'border-gray-300 bg-gray-50',
+  pending:     'border-gray-300 bg-gray-50',
   in_progress: 'border-blue-300 bg-blue-50',
-  complete: 'border-green-300 bg-green-50',
-  blocked: 'border-red-300 bg-red-50',
+  complete:    'border-green-300 bg-green-50',
+  blocked:     'border-red-300 bg-red-50',
 };
 
 const CARD_ACCENT = {
-  pending: 'border-l-gray-400',
+  pending:     'border-l-gray-400',
   in_progress: 'border-l-blue-500',
-  complete: 'border-l-green-500',
-  blocked: 'border-l-red-500',
+  complete:    'border-l-green-500',
+  blocked:     'border-l-red-500',
 };
 
 function WorkflowCard({ node, isSelected, onClick }) {
@@ -56,6 +57,7 @@ function WorkflowCard({ node, isSelected, onClick }) {
 
 export default function WorkflowView({ workflowNodes }) {
   const [selectedPath, setSelectedPath] = useState(null);
+  const [editing, setEditing] = useState(false);
   const { data: file, loading } = useFile(selectedPath);
 
   const columns = STATUS_COLUMNS.map((status) => ({
@@ -71,7 +73,10 @@ export default function WorkflowView({ workflowNodes }) {
       <div className="flex-1 overflow-x-auto p-6">
         <div className="flex gap-4 h-full min-w-max">
           {columns.map(({ status, nodes }) => (
-            <div key={status} className={`w-64 rounded-lg border-2 ${STATUS_COLORS[status]} flex flex-col`}>
+            <div
+              key={status}
+              className={`w-64 rounded-lg border-2 ${STATUS_COLORS[status]} flex flex-col`}
+            >
               <div className="px-3 py-2 border-b border-inherit">
                 <h3 className="text-sm font-semibold text-gray-700">
                   {STATUS_LABELS[status]}
@@ -84,7 +89,9 @@ export default function WorkflowView({ workflowNodes }) {
                     key={node.path}
                     node={node}
                     isSelected={selectedPath === node.path}
-                    onClick={() => setSelectedPath(selectedPath === node.path ? null : node.path)}
+                    onClick={() =>
+                      setSelectedPath(selectedPath === node.path ? null : node.path)
+                    }
                   />
                 ))}
                 {nodes.length === 0 && (
@@ -98,25 +105,44 @@ export default function WorkflowView({ workflowNodes }) {
 
       {/* Detail panel */}
       {selectedPath && (
-        <aside className="w-96 border-l border-gray-200 overflow-y-auto bg-white">
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+        <aside className="w-96 border-l border-gray-200 overflow-y-auto bg-white shrink-0">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-gray-700 truncate">
               {file?.frontmatter?.title || selectedPath}
             </h2>
-            <button
-              className="text-gray-400 hover:text-gray-600 ml-2 shrink-0"
-              onClick={() => setSelectedPath(null)}
-            >
-              ✕
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {file && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  Edit
+                </button>
+              )}
+              <button
+                className="text-gray-400 hover:text-gray-600"
+                onClick={() => setSelectedPath(null)}
+              >
+                ✕
+              </button>
+            </div>
           </div>
           <div className="p-4">
-            {loading && <div className="text-gray-400 text-sm">Loading...</div>}
+            {loading && <div className="text-gray-400 text-sm">Loading…</div>}
             {!loading && file && (
               <MarkdownRenderer html={file.html} frontmatter={file.frontmatter} />
             )}
           </div>
         </aside>
+      )}
+
+      {/* Inline editor overlay */}
+      {editing && file && (
+        <Editor
+          file={file}
+          onClose={() => setEditing(false)}
+          onSaved={() => setEditing(false)}
+        />
       )}
     </div>
   );

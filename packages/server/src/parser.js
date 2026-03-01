@@ -7,7 +7,7 @@ import { marked } from 'marked';
  * Recursively collect all .md files under a root directory.
  * Returns paths relative to rootDir.
  */
-async function collectMarkdownFiles(dir, rootDir) {
+export async function collectMarkdownFiles(dir, rootDir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const files = [];
 
@@ -37,6 +37,7 @@ async function parseFile(filePath) {
     frontmatter,
     content,
     html,
+    raw,
   };
 }
 
