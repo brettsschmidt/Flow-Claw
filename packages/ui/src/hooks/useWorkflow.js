@@ -12,8 +12,7 @@ export function useWorkflow() {
     try {
       const res = await fetch('/api/workflow');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setData(json);
+      setData(await res.json());
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -24,12 +23,9 @@ export function useWorkflow() {
 
   useEffect(() => {
     fetchWorkflow();
-
-    // Subscribe to SSE for live updates
     const es = new EventSource('/api/events');
     es.onmessage = () => fetchWorkflow();
-    es.onerror = () => {}; // Silently handle reconnects
-
+    es.onerror = () => {};
     return () => es.close();
   }, [fetchWorkflow]);
 
@@ -37,22 +33,37 @@ export function useWorkflow() {
 }
 
 /**
- * Fetches a single file by its relative path.
+ * Fetches a single file by its relative path and re-fetches on SSE file-change events.
  */
 export function useFile(filePath) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const doFetch = useCallback(async () => {
     if (!filePath) return;
     setLoading(true);
-    fetch(`/api/file?path=${encodeURIComponent(filePath)}`)
-      .then((r) => r.json())
-      .then((json) => { setData(json); setError(null); })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    try {
+      const r = await fetch(`/api/file?path=${encodeURIComponent(filePath)}`);
+      const json = await r.json();
+      setData(json);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [filePath]);
 
-  return { data, loading, error };
+  useEffect(() => {
+    if (!filePath) { setData(null); return; }
+    doFetch();
+    // Keep detail panel fresh whenever any file changes
+    const es = new EventSource('/api/events');
+    es.onmessage = doFetch;
+    es.onerror = () => {};
+    return () => es.close();
+  }, [doFetch, filePath]);
+
+  return { data, loading, error, refetch: doFetch };
 }

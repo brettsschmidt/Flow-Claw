@@ -18,3 +18,19 @@
 .prose table { @apply w-full border-collapse mb-4; }
 .prose th { @apply border border-gray-300 px-3 py-2 bg-gray-50 font-semibold text-left; }
 .prose td { @apply border border-gray-300 px-3 py-2; }
+
+/* Dark mode prose overrides */
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3 { color: #f3f4f6; }
+.dark .prose p,
+.dark .prose li { color: #d1d5db; }
+.dark .prose code { background: #374151; color: #f472b6; }
+.dark .prose pre  { background: #030712; color: #d1d5db; }
+.dark .prose pre code { background: transparent; color: #d1d5db; }
+.dark .prose blockquote { border-color: #4b5563; color: #9ca3af; }
+.dark .prose a { color: #60a5fa; }
+.dark .prose a:hover { color: #93c5fd; }
+.dark .prose hr { border-color: #374151; }
+.dark .prose th { background: #1f2937; border-color: #374151; color: #f3f4f6; }
+.dark .prose td { border-color: #374151; color: #d1d5db; }

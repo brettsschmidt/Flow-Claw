@@ -23,23 +23,27 @@ function TreeNode({ name, node, depth = 0, onSelect, selectedPath }) {
     const title = node.frontmatter?.title || name.replace(/\.md$/, '');
     const status = node.frontmatter?.status;
     const statusColor = {
-      complete: 'text-green-600',
-      in_progress: 'text-blue-600',
-      blocked: 'text-red-500',
-      pending: 'text-gray-400',
-    }[status] || 'text-gray-400';
+      complete:    'text-green-600 dark:text-green-400',
+      in_progress: 'text-blue-600 dark:text-blue-400',
+      blocked:     'text-red-500 dark:text-red-400',
+      pending:     'text-gray-400 dark:text-gray-500',
+    }[status] || 'text-gray-400 dark:text-gray-500';
 
     return (
       <button
-        className={`w-full text-left px-2 py-1 rounded text-sm flex items-center gap-1 hover:bg-gray-100 transition-colors ${
-          selectedPath === node.path ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+        className={`w-full text-left px-2 py-1 rounded text-sm flex items-center gap-1 transition-colors ${
+          selectedPath === node.path
+            ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium'
+            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
         }`}
         style={{ paddingLeft: `${indent + 8}px` }}
         onClick={() => onSelect(node.path)}
       >
         <span className="shrink-0">📄</span>
         <span className="truncate">{title}</span>
-        {status && <span className={`ml-auto text-xs shrink-0 ${statusColor}`}>{status}</span>}
+        {status && (
+          <span className={`ml-auto text-xs shrink-0 ${statusColor}`}>{status}</span>
+        )}
       </button>
     );
   }
@@ -47,7 +51,7 @@ function TreeNode({ name, node, depth = 0, onSelect, selectedPath }) {
   return (
     <div>
       <div
-        className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1"
+        className="px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1"
         style={{ paddingLeft: `${indent + 8}px` }}
       >
         <span>📁</span> {name}
